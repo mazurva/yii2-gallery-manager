@@ -106,6 +106,10 @@ class GalleryBehavior extends Behavior
     public $tableName = '{{%gallery_image}}';
     protected $_galleryId;
 
+    public $attributeRank = 'rank';
+    public $attributeOwner = 'type';
+    public $attributeOwnerId = 'ownerId';
+
     /**
      * @param ActiveRecord $owner
      */
@@ -171,10 +175,10 @@ class GalleryBehavior extends Behavior
             $query = new \yii\db\Query();
 
             $imagesData = $query
-                ->select(['id', 'name', 'description', 'rank'])
+                ->select(['id', 'name', 'description', $this->attributeRank])
                 ->from($this->tableName)
-                ->where(['type' => $this->type, 'ownerId' => $this->getGalleryId()])
-                ->orderBy(['rank' => 'asc'])
+                ->where([$this->attributeOwner => $this->type, $this->attributeOwnerId => $this->getGalleryId()])
+                ->orderBy([$this->attributeRank => 'asc'])
                 ->all();
 
             $this->_images = [];
@@ -331,8 +335,8 @@ class GalleryBehavior extends Behavior
             ->insert(
                 $this->tableName,
                 [
-                    'type' => $this->type,
-                    'ownerId' => $this->getGalleryId()
+                    $this->attributeOwner => $this->type,
+                    $this->attributeOwnerId => $this->getGalleryId()
                 ]
             )->execute();
 
@@ -340,7 +344,7 @@ class GalleryBehavior extends Behavior
         $db->createCommand()
             ->update(
                 $this->tableName,
-                ['rank' => $id],
+                [$this->attributeRank => $id],
                 ['id' => $id]
             )->execute();
 
@@ -376,7 +380,7 @@ class GalleryBehavior extends Behavior
             \Yii::$app->db->createCommand()
                 ->update(
                     $this->tableName,
-                    ['rank' => $orders[$i]],
+                    [$this->attributeRank => $orders[$i]],
                     ['id' => $k]
                 )->execute();
 
@@ -405,11 +409,11 @@ class GalleryBehavior extends Behavior
             }
         } else {
             $rawImages = (new Query())
-                ->select(['id', 'name', 'description', 'rank'])
+                ->select(['id', 'name', 'description', $this->attributeRank])
                 ->from($this->tableName)
-                ->where(['type' => $this->type, 'ownerId' => $this->getGalleryId()])
+                ->where([$this->attributeOwner => $this->type, $this->attributeOwnerId => $this->getGalleryId()])
                 ->andWhere(['in', 'id', $imageIds])
-                ->orderBy(['rank' => 'asc'])
+                ->orderBy([$this->attributeRank => 'asc'])
                 ->all();
             foreach ($rawImages as $image) {
                 $imagesToUpdate[] = new GalleryImage($this, $image);
